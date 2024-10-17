@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-app
+spec:
+  replicas: 2 # Create 2 replicas of the pod
+  selector:
+    matchLabels:
+      app: react-app
+  template:
+    metadata:
+      labels:
+        app: react-app
+    spec:
+      containers:
+        - name: react-app
+          image: my-react-app 
+          imagePullPolicy: Never # Use local Docker image (skip pulling from registry)
+          ports:
+            - containerPort: 80 # Expose port 80 inside the container
+          resources:
+            requests:
+              memory: "256Mi" # Minimum memory required for the container
+              cpu: "500m"      # Minimum CPU required for the container
+            limits:
+              memory: "512Mi" # Maximum memory the container can use
+              cpu: "1"        # Maximum CPU the container can use
+          livenessProbe: # Health check to restart the pod if it fails
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe: # Determines if the app is ready to serve traffic
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env: # Environment variables (optional)
+            - name: NODE_ENV
+              value: "production" # Set the environment variable to production

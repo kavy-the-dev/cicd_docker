@@ -39,8 +39,17 @@ jobs:
 
     - name: Deploy to local server
       run: |
-        # Replace these commands with your deployment script
-        cd ../backend
-        npm start & # Start the backend
+        run: |
+        # Start the backend server
+        cd backend
+        npm run dev & # Start the backend in the background
+
+        # Wait for the backend to start
+        sleep 10 # Adjust the sleep duration based on your backend startup time
+
+        # Serve the built React app
         cd ../frontend
-        serve -s build & # Serve the built React app
+        npm start & # Start the frontend in the background
+
+        # Optionally wait for the frontend to become ready
+        sleep 5 # Adjust based on your frontend startup time

@@ -1,42 +1,46 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: react-app
-spec:
-  replicas: 2 # Create 2 replicas of the pod
-  selector:
-    matchLabels:
-      app: react-app
-  template:
-    metadata:
-      labels:
-        app: react-app
-    spec:
-      containers:
-        - name: react-app
-          image: my-react-app 
-          imagePullPolicy: Never # Use local Docker image (skip pulling from registry)
-          ports:
-            - containerPort: 80 # Expose port 80 inside the container
-          resources:
-            requests:
-              memory: "256Mi" # Minimum memory required for the container
-              cpu: "500m"      # Minimum CPU required for the container
-            limits:
-              memory: "512Mi" # Maximum memory the container can use
-              cpu: "1"        # Maximum CPU the container can use
-          livenessProbe: # Health check to restart the pod if it fails
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe: # Determines if the app is ready to serve traffic
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          env: # Environment variables (optional)
-            - name: NODE_ENV
-              value: "production" # Set the environment variable to production
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted # Use the self-hosted runner for local deployment
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16' # Use the version suitable for your app
+
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm install
+        cd ../backend
+        npm install
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Run tests (optional)
+      run: |
+        cd backend
+        npm test # Run tests for the backend
+        cd ../frontend
+        npm test # Run tests for the frontend
+
+    - name: Deploy to local server
+      run: |
+        # Replace these commands with your deployment script
+        cd ../backend
+        npm start & # Start the backend
+        cd ../frontend
+        serve -s build & # Serve the built React app
